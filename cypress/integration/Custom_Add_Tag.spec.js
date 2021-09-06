@@ -66,14 +66,12 @@ describe('Tags in Room Review', function () {
     });
 
     // This test case is skipped with '.skip'
-    it.only('Add a Tag to the room review', function () {
+    it.skip('Add a Tag to the room review', function () {
         const customTag = 'Flower Pot'
         cy.intercept('POST', 'tag/batch?shouldRebuild=true').as('Tagged');
         cy.get('.room-name').contains("Cypress Testing's Living Room");
         cy.get('[data-e2e="rr-add-item-button"]').click()
         cy.get('[data-e2e="rr-volume-dropdown-input"]').type(`${customTag}{enter}`);
-        // cy.get('.dropdown-wrapper').last().click().type('Flower Pot');
-        // cy.get('.custom-value').first().click({ force: true });
         cy.get('@Tagged').its('response.statusCode').should('eq', 200);
         cy.screenshot('Flower Pot tag is added to the Living room');
         cy.get('tr.MuiTableRow-root [title="Flower Pot"]').should('have.text', 'Flower Pot');

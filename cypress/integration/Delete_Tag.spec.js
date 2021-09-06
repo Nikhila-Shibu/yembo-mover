@@ -1,7 +1,7 @@
 describe("Delete a tag from the room", function () {
-    const MOVE_KEY = 'mvusj3kcBngljsq0t2D2gxqGSbV0R3x0Mt4p';
-    const ROOM_KEY = 'rmuspFGbhZRMNhZLcz118DBlJ8FnkFh4H9KD';
-    const VIDEO_KEY = 'viduspKc6540j9gPNqv6NjJBQcjV6FT6QMvTV';
+    const MOVE_KEY = 'mvusBzrmP4jgxLgD5hSBgs4qGF25bGbm95Nj';
+    const ROOM_KEY = 'rmuspTfQ1847xQ8fCn5qGdhw81dP76xlhJj9';
+    const VIDEO_KEY = 'vidusssNxgHB6zmJmWnxp0Z7bwhwJWnW8nSTm';
 
     beforeEach(function () {
         cy.viewport(1366, 768);
@@ -26,32 +26,22 @@ describe("Delete a tag from the room", function () {
     });
     it("Delete an tag in the room review", function () {
         const tagName = 'Rug - Small';
-        //cy.intercept('POST', '/tag/batch?shouldRebuild=true').as('InventoryUpdate')
         cy.get('@videoResponse').then(({ response }) => {
             const { inventory } = response.body.video;
             const Tag = inventory.find(({ name }) => name === tagName);
             const tagQuantity = Tag ? Tag.quantity : 0;
-            cy.get('.room-name').contains("Jackson Hall (TEST)")
+            cy.get('.room-name').contains("Cypress Testing's Living Room")
             cy.screenshot("Rug Small tag is present")
-            //cy.get('img.image-img').first().rightclick({ force: true })
-            //cy.get('.tag-text.tiny-text').contains(tagName).first().rightclick({ force: true })
-            // cy.get('.tag.tag-colored.show-resizers').within(() => {
-            //     cy.get('.tag-text').contains(tagName).first().rightclick()
-            // })
             cy.get('.tag-text').contains(tagName).scrollIntoView().dblclick({ force: true })
-            cy.get('.room-review-context-menu').should('be.visible')
-            //cy.get('.room-review-context-menu > ul > :nth-child(1)').click()
-            cy.get('li.delete').click()
-            //cy.wait('@InventoryUpdate')
-            cy.get('.inventory-table-new .reviewer-name-cell')
+            cy.get('[data-e2e="rr-context-menu"]').should('be.visible')
+            cy.get('[data-e2e="rr-context-menu-delete"]').click()
+            cy.get('[data-e2e="rr-inventory-table"] .reviewer-name-cell')
                 .contains(tagName)
                 .scrollIntoView()
                 .parents('.reviewer-name-cell')
                 .next()
                 .children('input')
                 .should('have.value', tagQuantity);
-            cy.get('.dropdown-wrapper').click().type(tagName).type('{enter}');
-            cy.screenshot('Rug Small tag is deleted')
         })
 
     })
