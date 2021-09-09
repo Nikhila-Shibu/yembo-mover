@@ -17,8 +17,9 @@ Cypress.Commands.add('RoomPage', () => {
     cy.get('.yb-tool-tip > .yb-icon > .blue').click()
     cy.get('.tooltip-content > div').should('be.visible')
     cy.get('div.consumer-name-wrap').should('have.text', 'Cypress Testing').click()
-    // cy.get('#overview').should('be.visible')
+    cy.get('#overview').should('be.visible')
     cy.get('#rooms').should('be.visible').click()
+    cy.get('[data-e2e="room-card-living-room"]').click();
 });
 Cypress.Commands.add('visitUrl', (url) => {
     disableServiceWorker

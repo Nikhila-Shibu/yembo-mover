@@ -1,20 +1,17 @@
 describe("Add an Picture to the room", function () {
-    before(function () {
-        cy.ReviewerLogin()
-    })
-    it.only("Navigate Room page in application", function () {
-        cy.url().should('include', '?nextPage=/')
-        Cypress.on('uncaught:exception', (err, runnable) => {
-            if (err.message.includes('ResizeObserver loop limit exceeded')) {
-                return false
-            }
-        })
-        cy.RoomPage()
-        if (cy.get('.is-not-ios').contains('Living Roomreviewed').within(() => {
-            cy.get('span.yb-icon').eq(1).click({ force: true })
-        }))
-            cy.get('.is-not-ios').contains('Living Roomneeds review').click();
-    })
+    const MOVEKEY = 'mvusBzrmP4jgxLgD5hSBgs4qGF25bGbm95Nj';
+    const ROOMKEY = 'rmuspTfQ1847xQ8fCn5qGdhw81dP76xlhJj9';
+    const VEDIOKEY = 'vidusssNxgHB6zmJmWnxp0Z7bwhwJWnW8nSTm';
+    beforeEach(function () {
+        cy.viewport(1366, 768);
+        cy.LoginByXHR();
+    
+    cy.intercept(`video?key=${VEDIOKEY}*`).as('vedioResponse') ;
+    cy.intercept(`room?moveKey=${MOVEKEY}*`).as('roomResponse');
+    cy.visit(`https://app.mariner.dev.yembo.ai/move/${MOVEKEY}/rooms?key=${ROOMKEY}#has-inventory`);
+    cy.wait('@vedioResponse');
+    cy.wait('@roomResponse');
+})
     it("Add a Picture to the room review", function () {
         cy.get('.room-name').contains("Cypress Testing's Living Room").its('length').should('eq', 1)
         cy.get('.button-content').contains('Upload Photo').click()
