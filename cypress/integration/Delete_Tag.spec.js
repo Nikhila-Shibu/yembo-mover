@@ -24,24 +24,31 @@ describe("Delete a tag from the room", function () {
          */
         cy.wait('@roomResponse');
     });
-    it("Delete an tag in the room review", function () {
-        const tagName = 'Rug - Small';
-        cy.get('@videoResponse').then(({ response }) => {
-            const { inventory } = response.body.video;
-            const Tag = inventory.find(({ name }) => name === tagName);
-            const tagQuantity = Tag ? Tag.quantity : 0;
-            cy.get('.room-name').contains("Cypress Testing's Living Room")
-            cy.screenshot("Rug Small tag is present")
-            cy.get('.tag-text').contains(tagName).scrollIntoView().dblclick({ force: true })
-            cy.get('[data-e2e="rr-context-menu"]').should('be.visible')
-            cy.get('[data-e2e="rr-context-menu-delete"]').click()
-            cy.get('[data-e2e="rr-inventory-table"] .reviewer-name-cell')
-                .contains(tagName)
-                .scrollIntoView()
-                .parents('.reviewer-name-cell')
-                .next()
-                .children('input')
-                .should('have.value', tagQuantity);
+
+    it('Inventory table quantity deletion', function(){
+    const tagName = 'Rug - Small';
+
+        cy.intercept('DELETE', 'tag?shouldRebuild=true').as('deleteTagRequest');
+        cy.intercept('POST','tag/batch?shouldRebuild=true').as('quantityUpdateRequest')
+      
+        //Adding a tag 
+        cy.get('[data-e2e="rr-inventory-table-add-item"]')
+          .click()
+          .then(() => {
+            cy.get('[data-e2e="rr-volume-dropdown-input"]').type(tagName);
+            cy.get(`[data-e2e="rr-default-${tagName}"]`).click()
+          });
+
+        //Deleting the added Tag
+        cy.get('[data-e2e="rr-inventory-table"]')
+        .scrollIntoView()
+        .should('be.visible')
+        .find('tr')
+        .then((rows) => {
+            if(rows.text().includes(tagName)){
+              cy.getInventoryTableDelete(tagName, 0)
+                cy.wait('@deleteTagRequest');
+            }      
         })
 
     })

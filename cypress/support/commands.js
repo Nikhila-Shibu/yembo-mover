@@ -8,19 +8,7 @@ Cypress.Commands.add('ReviewerLogin', () => {
     cy.get('input[name="password"]').type('Yembo2021!')
     cy.get('.yb-primary-button').click()
 });
-Cypress.Commands.add('RoomPage', () => {
-    cy.url().should('include', '/moves/inbox')
-    cy.get('.search-bar-input', { timeout: 5000 }).should('be.visible')
-    cy.get('.hamburger-icon', { timeout: 5000 }).should('be.visible').click()
-    cy.get('.yb-hamburger-menu > .menu-element > :nth-child(3)').click()
-    cy.location('hash').should('contain', 'mine')
-    cy.get('.yb-tool-tip > .yb-icon > .blue').click()
-    cy.get('.tooltip-content > div').should('be.visible')
-    cy.get('div.consumer-name-wrap').should('have.text', 'Cypress Testing').click()
-    cy.get('#overview').should('be.visible')
-    cy.get('#rooms').should('be.visible').click()
-    cy.get('[data-e2e="room-card-living-room"]').click();
-});
+
 Cypress.Commands.add('visitUrl', (url) => {
     disableServiceWorker
     cy.visit(url, {
@@ -45,4 +33,47 @@ Cypress.Commands.add('LoginByXHR', () => {
         storage.setItem('deviceKey', key);
         storage.setItem('employeeKey', userKey);
     });
+})
+
+Cypress.Commands.add('getBySel', (selector, ...args) => {
+    return cy.get(`[data-e2e=${selector}]`, ...args);
+  });
+  
+  
+Cypress.Commands.add('getInventoryTableValue', (tag, columnId) => {
+    cy.getBySel('rr-content').scrollTo('center');
+    return cy
+      .getBySel('rr-inventory-table')
+      .contains(tag)
+      .scrollIntoView()
+      .closest('tr')
+      .find('td')
+      .eq(columnId)
+      .find('input')
+      .invoke('val');
+  });
+
+Cypress.Commands.add('getInventoryTableInput', (tag, columnId) => {
+    cy.getBySel('rr-content').scrollTo('center');
+    return cy
+      .getBySel('rr-inventory-table')
+      .contains(tag)
+      .scrollIntoView()
+      .closest('tr')
+      .find('td')
+      .eq(columnId)
+      .find('input')
+  });
+
+Cypress.Commands.add('getInventoryTableDelete', (tag, columnId) => {
+    return cy
+        .getBySel('rr-inventory-table-cell-name')
+        .contains(tag)
+        .scrollIntoView()
+        .closest('tr')
+        .find('td')
+        .eq(columnId)
+        .find('svg')
+        .invoke('attr', 'style', 'visibility: visible')
+        .click();
 })
