@@ -163,7 +163,6 @@ describe('Room Review Keyword Shortcuts', function () {
     cy.wait('@quantityUpdateRequest');
 
     //keypress on "c" to change th category of item
-    // cy.getBySel('rr-images').scrollIntoView().find('.image-img').eq(0);
     cy.getBySel('rr-tag-text')
       .contains(itemName)
       .parent()
@@ -341,5 +340,106 @@ describe('Room Review Keyword Shortcuts', function () {
       metaKey: false,
     });
     cy.wait('@deleteTagRequest');
+  });
+
+  it('keypress on "ctrl+c" and "ctrl+v" to copy and paste item respectively', function () {
+    const itemNameBag = 'Bag';
+    cy.intercept('DELETE', 'tag?shouldRebuild=true').as('deleteTagRequest');
+    cy.intercept('POST', 'tag/batch?shouldRebuild=true').as('addItemRequest');
+
+    //Initialization
+    cy.get('[data-e2e="rr-inventory-table"]')
+      .scrollIntoView()
+      .should('be.visible')
+      .find('tr')
+      .then((rows) => {
+        if (rows.text().includes(itemNameBag)) {
+          cy.getInventoryTableDelete(itemNameBag, 0);
+          cy.wait('@deleteTagRequest');
+        }
+      });
+
+    cy.getImage(0);
+    cy.getBySel('rr-context-menu').scrollIntoView();
+    cy.get('ul>li')
+      .eq(0)
+      .click()
+      .then(() => {
+        cy.getBySel('rr-volume-dropdown-input').type(itemNameBag);
+        cy.getBySel(`'rr-default-${itemNameBag}'`).click();
+        cy.wait('@addItemRequest');
+      });
+
+    cy.getBySel('rr-tag-text').contains(itemNameBag).parent().scrollIntoView().focus().click().trigger('keydown', {
+      key: 'c',
+      which: 67,
+      Code: 'KeyC',
+      shiftKey: false,
+      altKey: false,
+      ctrlKey: true,
+      metaKey: false,
+    });
+    cy.get('.images').trigger('keydown', {
+      key: 'v',
+      which: 86,
+      Code: 'KeyV',
+      shiftKey: false,
+      altKey: false,
+      ctrlKey: true,
+      metaKey: false,
+    });
+
+    //Confirmation
+    cy.getInventoryTableInput(itemNameBag, 2).should('have.value', 2);
+  });
+
+  it('keypress "ctrl+z" to undo image or tag deletion (within 5sec)', function () {
+    const itemNameBag = 'Bag';
+    cy.intercept('DELETE', 'tag?shouldRebuild=true').as('deleteTagRequest');
+    cy.intercept('POST', 'tag/batch?shouldRebuild=true').as('addItemRequest');
+
+    //Initialization
+    cy.get('[data-e2e="rr-inventory-table"]')
+      .scrollIntoView()
+      .should('be.visible')
+      .find('tr')
+      .then((rows) => {
+        if (rows.text().includes(itemNameBag)) {
+          cy.getInventoryTableDelete(itemNameBag, 0);
+          cy.wait('@deleteTagRequest');
+        }
+      });
+
+    cy.getImage(0);
+    cy.getBySel('rr-context-menu').scrollIntoView();
+    cy.get('ul>li')
+      .eq(0)
+      .click()
+      .then(() => {
+        cy.getBySel('rr-volume-dropdown-input').type(itemNameBag);
+        cy.getBySel(`'rr-default-${itemNameBag}'`).click();
+        cy.wait('@addItemRequest');
+      });
+
+    cy.getBySel('rr-tag-text').contains(itemNameBag).parent().scrollIntoView().focus().click().trigger('keydown', {
+      key: 'Delete',
+      which: 46,
+      Code: 'Delete',
+      shiftKey: false,
+      altKey: false,
+      ctrlKey: false,
+      metaKey: false,
+    });
+    cy.getBySel('rr-images').click().trigger('keydown', {
+      key: 'z',
+      which: 90,
+      Code: 'keyZ',
+      shiftKey: false,
+      altKey: false,
+      ctrlKey: true,
+      metaKey: false,
+    });
+    //confirmation
+    cy.getInventoryTableInput(itemNameBag, 2).should('have.value', 1);
   });
 });
