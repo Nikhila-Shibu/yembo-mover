@@ -1,5 +1,3 @@
-const { initial } = require('lodash');
-
 describe('Room Review Inventory', function () {
   const MOVEKEY = 'mvusBzrmP4jgxLgD5hSBgs4qGF25bGbm95Nj';
   const ROOMKEY = 'rmuspTfQ1847xQ8fCn5qGdhw81dP76xlhJj9';
@@ -291,5 +289,98 @@ describe('Room Review Inventory', function () {
     //Confirmation
     cy.getBySel('rr-inventory-not_moving').scrollIntoView().should('be.visible').click();
     cy.get('[data-e2e="rr-inventory-table-cell-name"]').contains(itemName).scrollIntoView();
+  });
+
+  it('drag a tag to another image ', function () {
+    const itemName = 'Cradle';
+    cy.intercept('DELETE', 'tag?shouldRebuild=true').as('deleteTagRequest');
+    cy.intercept('POST', 'tag/batch?shouldRebuild=true').as('addItemRequest');
+    cy.intercept('PUT', 'tag/batch?shouldRebuild=true').as('updateTagRequest');
+
+    //Initialization
+    cy.get('[data-e2e="rr-inventory-table"]')
+      .scrollIntoView()
+      .should('be.visible')
+      .find('tr')
+      .then((rows) => {
+        if (rows.text().includes(itemName)) {
+          cy.getInventoryTableDelete(itemName, 0);
+          cy.wait('@deleteTagRequest');
+        }
+      });
+
+    //Add a tag
+    cy.getImage(0);
+    cy.getBySel('rr-context-menu').scrollIntoView();
+    cy.get('ul>li')
+      .eq(0)
+      .click()
+      .then(() => {
+        cy.getBySel('rr-volume-dropdown-input').type(itemName);
+        cy.getBySel(`'rr-default-${itemName}'`).click();
+        cy.wait('@addItemRequest');
+      });
+
+    cy.getBySel('rr-tag-text')
+      .contains(itemName)
+      .parent()
+      .scrollIntoView()
+      .then((tag) => {
+        cy.wrap(tag)
+          .trigger('mousedown', { buttons: 1, force: true })
+          .trigger('mousemove', { clientX: 450, clientY: 0, force: true })
+          .trigger('mouseup', { force: true });
+      });
+    cy.wait('@updateTagRequest');
+
+    //confirmation
+    cy.getInventoryTableInput(itemName, 2).should('have.value', 1);
+  });
+
+  it('resize a tag', function () {
+    const itemName = 'Cradle';
+    cy.intercept('DELETE', 'tag?shouldRebuild=true').as('deleteTagRequest');
+    cy.intercept('POST', 'tag/batch?shouldRebuild=true').as('addItemRequest');
+    cy.intercept('PUT', 'tag/batch?shouldRebuild=true').as('updateTagRequest');
+
+    //Initialization
+    cy.get('[data-e2e="rr-inventory-table"]')
+      .scrollIntoView()
+      .should('be.visible')
+      .find('tr')
+      .then((rows) => {
+        if (rows.text().includes(itemName)) {
+          cy.getInventoryTableDelete(itemName, 0);
+          cy.wait('@deleteTagRequest');
+        }
+      });
+
+    //Add a tag
+    cy.getImage(0);
+    cy.getBySel('rr-context-menu').scrollIntoView();
+    cy.get('ul>li')
+      .eq(0)
+      .click()
+      .then(() => {
+        cy.getBySel('rr-volume-dropdown-input').type(itemName);
+        cy.getBySel(`'rr-default-${itemName}'`).click();
+        cy.wait('@addItemRequest');
+      });
+
+    cy.getBySel('rr-tag-text')
+      .contains(itemName)
+      .parent()
+      .scrollIntoView()
+      .then((tag) => {
+        cy.wrap(tag)
+          .find('[data-e2e="cursor-s-resize"]')
+          .then((resizer) => {
+            cy.wrap(resizer)
+              .trigger('mousedown', { buttons: 1, force: true })
+              .trigger('mousemove', { clientX: 0, clientY: 70, force: true })
+              .trigger('mouseup', { force: true });
+          });
+      });
+    cy.wait('@updateTagRequest');
   });
 });
