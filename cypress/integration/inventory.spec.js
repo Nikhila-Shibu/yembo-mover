@@ -1,7 +1,7 @@
 describe('Room Review Inventory', function () {
-  const MOVEKEY = 'mvusBzrmP4jgxLgD5hSBgs4qGF25bGbm95Nj';
-  const ROOMKEY = 'rmuspTfQ1847xQ8fCn5qGdhw81dP76xlhJj9';
-  const videoKEY = 'vidusssNxgHB6zmJmWnxp0Z7bwhwJWnW8nSTm';
+  const MOVEKEY = 'mvusbRPpjMDc4jgmK92lHJ6sn4m8PWxvT0HZ';
+  const ROOMKEY = 'rmuss7sSBRhf63rqCZZJRTh9zmSjhZb3S8r4';
+  const videoKEY = 'viduswKPlMp7JHFKD32D6pPbLnk7nppCfK5gl';
 
   beforeEach(function () {
     cy.viewport(1366, 768);
@@ -382,5 +382,78 @@ describe('Room Review Inventory', function () {
           });
       });
     cy.wait('@updateTagRequest');
+  });
+
+  it('move image to other room', function () {
+    cy.intercept('PUT', '/image').as('moveImageRequest');
+    cy.get('.images .image-wrapper').find('img').parent().last().trigger('mouseover', 'top');
+    cy.get('.delete-row-item')
+      .last()
+      .parent()
+      .then((items) => {
+        cy.wrap(items);
+        cy.get('.move-image-dropdown')
+          .last()
+          .click()
+          .scrollIntoView()
+          .then(() => {
+            cy.get('.dropdown').contains('Master Bedroom').click();
+          });
+        cy.wait('@moveImageRequest');
+      });
+    cy.getBySel('rooms-placeholder')
+      .click()
+      .then(() => {
+        cy.get('.rooms-dropdown').contains('Master Bedroom').click();
+      });
+    cy.get('.images .image-wrapper')
+      .find('img')
+      .then((images) => {
+        cy.wrap(images).last().scrollIntoView();
+        cy.get('[image-key="imgus7vXW2VTDmSf8TKkXswXDdk0l09kFxFGZ"]').should('be.visible');
+      });
+  });
+
+  //Test to move image to other room by uploading an image initially
+  it('move image to other room', function () {
+    cy.intercept('PUT', '/image').as('moveImageRequest');
+    cy.intercept('POST', 'tag/batch?shouldRebuild=true').as('imageUploadRequest');
+
+    //Initialization
+    cy.get('.button-content').contains('Upload Photo').click();
+    cy.get('.cta-modal').should('be.visible');
+    cy.get('.dropbox').click();
+    const filepath = 'living-room.jpg';
+    cy.get('input[type="file"]').attachFile(filepath);
+    cy.get('.cta-modal-subheader').contains('Upload ' + filepath);
+    cy.get('.button-text')
+      .contains('Confirm Upload')
+      .click()
+      .then(() => {
+        cy.wait('@imageUploadRequest');
+        cy.get('.images .image-wrapper').find('img').parent().last().trigger('mouseover', 'top');
+        cy.getBySel('delete-row-item-imgusxGwFfvNSGMQ83gcjg1Ktnb9nz6216mrp').then((items) => {
+          cy.wrap(items);
+          cy.get('.move-image-dropdown')
+            .last()
+            .click()
+            .scrollIntoView()
+            .then(() => {
+              cy.get('.dropdown').contains('Master Bedroom').click();
+            });
+          cy.wait('@moveImageRequest');
+        });
+      });
+
+    cy.getBySel('rooms-placeholder')
+      .click()
+      .then(() => {
+        cy.get('.rooms-dropdown').contains('Master Bedroom').click();
+        cy.get('.images .image-wrapper')
+          .find('img')
+          .then((images) => {
+            cy.wrap(images).last().scrollIntoView();
+          });
+      });
   });
 });
